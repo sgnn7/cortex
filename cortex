@@ -83,6 +83,9 @@ Keys:
         in. Alternatively, when already viewing a subreddit,
         jump back to the frontpage.
 
+    l
+        Mark all articles in the list as read.
+
     Up / k
         Move one entry up the list.
 
@@ -285,6 +288,8 @@ Binds = {
     ord("c"): "open-comments",
 
     ord("i"): "open-inbox",
+
+    ord("l"): "mark-all-read",
 
     ord("h"): "frontpage",
     ord("s"): "subreddit",
@@ -507,12 +512,13 @@ class Entry(object):
     def __init__(self, data):
         self.data = data
         self.read = self.data["id"] in Seen
+        self.reval_data()
 
+    def reval_data(self):
+        """Revaluate data dictionary to set some convenience vars."""
         self.data["title"] = self.data["title"].replace("\r\n", "").replace("\n", "").replace("&amp;","&")
         self.data["read"] = "     " if self.read else "[New]"
         self.data["nsfw"] = "NSFW" if self.data["over_18"] else "    "
-
-        self.selected = False
 
     def __repr__(self):
         return "<"+self.data["title"]+">"
@@ -835,6 +841,14 @@ def cm_openinbox(data, interface):
     browseropen(INBOX_URI)
     interface.need_update = True
     interface.messages = 0
+
+@command(name="mark-all-read")
+def cm_mark_all_read(data, interface):
+    for entry in data.entries:
+        entry.read = True
+        entry.reval_data()
+
+    data.need_update = True
 
 @command(name="toggle-minimal")
 def cm_toggle_minimal(data, interface):
