@@ -1,12 +1,5 @@
 #!/usr/bin/env python
 # coding=utf-8
-"""
- Cortex
- ------
- Featureful reddit browser and monitor in ncurses.
- ------
- Author: Lucas de Vries <lucas@glacicle.org>
-"""
 import os
 import sys
 import curses
@@ -49,7 +42,7 @@ License WTFPL: <http://sam.zoy.org/wtfpl>""".format(
 
 HELPTEXT = """
 Usage: {{CMD}} [SUBREDDIT]
-A featureful reddit browser and monitor in ncurses.
+An ncurses reddit browser and monitor.
 
 You can optionally specify a subreddit to display initially over the
 commandline.
