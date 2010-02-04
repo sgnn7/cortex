@@ -403,7 +403,7 @@ def browseropen(uri):
             os.system(cmd)
         else:
             for u in uri:
-                webbrowser.open(uri)
+                webbrowser.open(u)
 # }}}
 
 # {{{ seen_write
