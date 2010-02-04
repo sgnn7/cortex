@@ -185,23 +185,23 @@ Color Configuration:
         entry-data=yellow,black
             The right/data part of an entry.
 
-        entry:selected=brightyellow,magenta
+        entry-selected=brightyellow,magenta
             The main part of a selected entry.
 
-        entry-data:selected=brightyellow,magenta
+        entry-data-selected=brightyellow,magenta
             The right/data part of a selected entry.
 
         entry-bottom=green,black
             The main part of the bottom line of an entry in full mode.
 
-        entry-bottom:selected=brightyellow,magenta
+        entry-bottom-selected=brightyellow,magenta
             The main part of the bottom line of a selected entry
             in full mode.
 
         entry-bottom-data=yellow,black
             The right/data part of the bottom line of an entry in full mode.
 
-        entry-bottom-data:selected=brightyellow,magenta
+        entry-bottom-data-selected=brightyellow,magenta
             The right/data part of the bottom line of a selected entry in full 
             mode.
 
@@ -253,12 +253,12 @@ Colors = {
     "normal": ("white", "black"),
     "entry": ("white", "black"),
     "entry-data": ("yellow", "black"),
-    "entry:selected": ("brightyellow", "magenta"),
-    "entry-data:selected": ("brightyellow", "magenta"),
+    "entry-selected": ("brightyellow", "magenta"),
+    "entry-data-selected": ("brightyellow", "magenta"),
     "entry-bottom": ("green", "black"),
-    "entry-bottom:selected": ("brightyellow", "magenta"),
+    "entry-bottom-selected": ("brightyellow", "magenta"),
     "entry-bottom-data": ("yellow", "black"),
-    "entry-bottom-data:selected": ("brightyellow", "magenta"),
+    "entry-bottom-data-selected": ("brightyellow", "magenta"),
     "messages": ("brightgreen", "blue"),
 }
 Binds = {
@@ -695,7 +695,7 @@ class Interface(object):
         while y < height-1:
             if num_entries and i < num_entries:
                 entry = self.data.entries[i]
-                sel = ":selected" if self.selected == i else ""
+                sel = "-selected" if self.selected == i else ""
                 i += 1
 
                 if Minimal:

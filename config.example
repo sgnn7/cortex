@@ -30,10 +30,10 @@
 #normal=white,black
 #entry=white,black
 #entry-data=yellow,black
-#entry:selected=brightyellow,magenta
-#entry-data:selected=brightyellow,magenta
+#entry-selected=brightyellow,magenta
+#entry-data-selected=brightyellow,magenta
 #entry-bottom=green,black
-#entry-bottom:selected=brightyellow,magenta
+#entry-bottom-selected=brightyellow,magenta
 #entry-bottom-data=yellow,black
-#entry-bottom-data:selected=brightyellow,magenta
+#entry-bottom-data-selected=brightyellow,magenta
 #messages=brightgreen,blue
