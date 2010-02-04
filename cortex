@@ -8,6 +8,7 @@ import thread
 import time
 import webbrowser
 
+from urllib import quote
 from threading import Timer
 from ConfigParser import ConfigParser
 
@@ -227,6 +228,7 @@ GETCH_TIMEOUT = 400
 BASE_URI = "http://reddit.com/"
 INBOX_URI = BASE_URI+"message/inbox"
 SUB_URI = BASE_URI+"r/{0}/"
+SEARCH_URI = BASE_URI+"search.json?q={0}&sort=new"
 
 COLOR_NAME = {
     "black": 0,
@@ -293,6 +295,7 @@ Binds = {
 
     ord("h"): "frontpage",
     ord("s"): "subreddit",
+    ord("/"): "search",
 
     ord("f"): "subreddit-go",
 
@@ -432,8 +435,7 @@ def check_inbox(interface):
 # {{{ Data
 class Data(object):
     """Manage communication with the external website."""
-    def __init__(self, uri, param=None):
-        self.param = param
+    def __init__(self, uri):
         self.uri = uri
         self.loading = False
         self.need_update = False
@@ -441,9 +443,6 @@ class Data(object):
         self.total = 0
         self.new = 0
         self.error = ""
-
-        if self.param:
-            self.uri = Locations[self.location].format(param)
 
     def pprint(self):
         from pprint import pprint
@@ -889,6 +888,33 @@ def cm_subreddit(data, interface):
         del interface.data
         data = Data(newloc)
         data.title = sub
+        data.load()
+        interface.data = data
+
+@command(name="search")
+def cm_search(data, interface):
+    curses.curs_set(1)
+    curses.echo()
+    interface.scr.timeout(-1)
+
+    height, width = interface.scr.getmaxyx()
+    interface.scr.addstr(height-1, 0, " "*(width-1))
+    interface.scr.addstr(height-1, 1, "Search: ")
+    sub = interface.scr.getstr(height-1, 9)
+
+    interface.scr.timeout(GETCH_TIMEOUT)
+    curses.noecho()
+    curses.curs_set(0)
+
+    if not sub:
+        return
+    else:
+        newloc = SEARCH_URI.format(quote(sub))
+
+    if data.uri != newloc:
+        del interface.data
+        data = Data(newloc)
+        data.title = "Search -- "+sub
         data.load()
         interface.data = data
 
