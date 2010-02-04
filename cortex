@@ -87,6 +87,9 @@ Keys:
     l
         Mark all articles in the list as read.
 
+    /
+        Prompt for searching reddit.
+
     Up / k
         Move one entry up the list.
 
