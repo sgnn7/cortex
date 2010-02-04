@@ -20,6 +20,7 @@
 ## Amount of articles to save seen/read status for
 #seen-size=500
 ## Command to invoke the webbrowser
+## If left empty will try to autodetect the system default browser
 #browser-command=firefox '{0}'
 ## Amount of minutes between automatic updates/refreshes
 #update-interval=10

@@ -6,6 +6,7 @@ import curses
 import urllib2
 import thread
 import time
+import webbrowser
 
 from threading import Timer
 from ConfigParser import ConfigParser
@@ -157,9 +158,12 @@ Configuration:
     seen-size=500
         Amount of articles to save seen/read status for.
 
-    browser-command=firefox '{0}'
+    browser-command=
         Command to invoke the webbrowser. The {0} will be replaced by the url 
         to open.
+
+        If left empty, cortex will try to autodetect the default browser for
+        the system.
 
     update-interval=10
         Amount of minutes between automatic updates/refreshes.
@@ -236,7 +240,7 @@ COLOR_NAME = {
 # {{{ Configuration
 # Default config
 Config = {
-    "browser-command": "firefox '{0}'",
+    "browser-command": "",
     "update-interval": 10,
     "seen-size": 500,
     "sort": "-created",
@@ -384,10 +388,17 @@ def getcommand(name, cmds=None):
 def browseropen(uri):
     """Open a link in the browser."""
     if type(uri) in (str, unicode):
-        os.system(Config["browser-command"].format(uri)+" &")
+        if Config["browser-command"]:
+            os.system(Config["browser-command"].format(uri)+" &")
+        else:
+            webbrowser.open(uri)
     else:
-        cmd = "("+" && ".join([Config["browser-command"].format(u) for u in uri])+") &"
-        os.system(cmd)
+        if Config["browser-command"]:
+            cmd = "("+" ; ".join([Config["browser-command"].format(u) for u in uri])+") &"
+            os.system(cmd)
+        else:
+            for u in uri:
+                webbrowser.open(uri)
 # }}}
 
 # {{{ seen_write
