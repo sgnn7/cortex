@@ -850,6 +850,7 @@ def cm_mark_all_read(data, interface):
         entry.read = True
         entry.reval_data()
 
+    data.new = 0
     data.need_update = True
 
 @command(name="toggle-minimal")
