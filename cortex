@@ -120,7 +120,7 @@ Configuration:
         Unread messages json url, put your personal one here if you want
         cortex to display your unread message count.
 
-    sort=
+    sort=-read
         Field to sort the entries by. A "-" in front of the field name
         indicates a reverse sort order.
 
@@ -132,6 +132,7 @@ Configuration:
             created: Article creation time
             title: Article title alphabetically
             score: Article total score
+            read: Whether the article is marked read or not
 
     title-format= Cortex -- Reddit/{title}: {total} articles, {new} new
         Format used in the application title bar.
@@ -255,7 +256,7 @@ Config = {
     "browser-command": "",
     "update-interval": 10,
     "seen-size": 500,
-    "sort": "",
+    "sort": "-read",
 
     "title-format": u" Cortex -- Reddit/{title}: {total} articles, {new} new",
     "entry-format-minimal": u" {title} %> {subreddit:<13} | {num_comments:<4}",

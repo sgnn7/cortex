@@ -7,8 +7,7 @@
 ## cortex to display your unread message count
 #inbox=
 ## The field to sort the entries by. A "-" in front indicated a reverse sort order.
-##sort=-created
-#sort=
+#sort=-read
 ## Format used in the application title bar
 ### See `cortex --help` for the format specification.
 #title-format= Cortex -- Reddit/{title}: {total} articles, {new} new
