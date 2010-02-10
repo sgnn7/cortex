@@ -7,7 +7,8 @@
 ## cortex to display your unread message count
 #inbox=
 ## The field to sort the entries by. A "-" in front indicated a reverse sort order.
-#sort=-created
+##sort=-created
+#sort=
 ## Format used in the application title bar
 ### See `cortex --help` for the format specification.
 #title-format= Cortex -- Reddit/{title}: {total} articles, {new} new
@@ -21,7 +22,8 @@
 #seen-size=500
 ## Command to invoke the webbrowser
 ## If left empty will try to autodetect the system default browser
-#browser-command=firefox '{0}'
+##browser-command=firefox '{0}'
+#browser-command=
 ## Amount of minutes between automatic updates/refreshes
 #update-interval=10
 

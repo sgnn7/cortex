@@ -12,7 +12,7 @@ from urllib import quote
 from threading import Timer
 from ConfigParser import ConfigParser
 
-# Get a json library
+ Get a json library
 try:
     import json
 except ImportError:
@@ -120,9 +120,13 @@ Configuration:
         Unread messages json url, put your personal one here if you want
         cortex to display your unread message count.
 
-    sort=-created
+    sort=
         Field to sort the entries by. A "-" in front of the field name
         indicates a reverse sort order.
+
+        Not specifying a sort option will leave the ordering to reddit
+        (this usually means you will see the same order in cortex as
+        you would on your frontpage).
 
         Some fields that can be sorted by:
             created: Article creation time
@@ -251,7 +255,7 @@ Config = {
     "browser-command": "",
     "update-interval": 10,
     "seen-size": 500,
-    "sort": "-created",
+    "sort": "",
 
     "title-format": u" Cortex -- Reddit/{title}: {total} articles, {new} new",
     "entry-format-minimal": u" {title} %> {subreddit:<13} | {num_comments:<4}",
@@ -481,13 +485,14 @@ class Data(object):
 
         seen_write()
 
-        sort = Config["sort"]
-        if sort.startswith("-"):
-            sort = sort[1:]
+        if Config["sort"]:
+            sort = Config["sort"]
+            if sort.startswith("-"):
+                sort = sort[1:]
 
-        self.entries.sort(key=(lambda entry: entry.data[sort] if sort in entry.data else 0))
-        if Config["sort"].startswith("-"):
-            self.entries.reverse()
+            self.entries.sort(key=(lambda entry: entry.data[sort] if sort in entry.data else 0))
+            if Config["sort"].startswith("-"):
+                self.entries.reverse()
 
         self.loading = False
         self.need_update = True
