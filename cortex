@@ -12,7 +12,7 @@ from urllib import quote
 from threading import Timer
 from ConfigParser import ConfigParser
 
- Get a json library
+# Get a json library
 try:
     import json
 except ImportError:
