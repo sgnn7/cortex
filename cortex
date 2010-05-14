@@ -293,6 +293,7 @@ Binds = {
 
     ord("o"): "open",
     10: "open",
+    ord("z"): "mark-read",
 
     ord("t"): "open-both",
     ord("c"): "open-comments",
@@ -834,6 +835,14 @@ def cm_update(data, interface):
 def cm_open(data, interface):
     interface.entry.open()
     interface.need_update = True
+
+@command(name="mark-read")
+def cm_mark_read(data, interface):
+    if not interface.entry.read:
+        interface.entry.read = True
+        interface.entry.reval_data()
+        data.new -= 1
+        data.need_update = True
 
 @command(name="open-comments")
 def cm_opencomments(data, interface):
