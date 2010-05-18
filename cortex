@@ -84,6 +84,9 @@ Keys:
         in. Alternatively, when already viewing a subreddit,
         jump back to the frontpage.
 
+    z
+        Mark the currently selected link as read.
+
     l
         Mark all articles in the list as read.
 
