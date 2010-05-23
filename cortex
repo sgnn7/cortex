@@ -27,16 +27,16 @@ except ImportError:
 
 # {{{ Constants
 APPLICATION_NAME = "Cortex"
-APPLICATION_VERSION = "0.5.0"
+APPLICATION_VERSION = "0.5.1"
 APPLICATION_URI = "http://cortex.glacicle.org"
 
 # {{{ Version/Help text
-VERSIONTEXT = """{name} v{version} <{uri}>
+VERSIONTEXT = """%(name)s v%(version)s <%(uri)s>
 
 See --help for information about using and configuring cortex.
 
 Copyright (C) 2010 Lucas de Vries <lucas@glacicle.org>
-License WTFPL: <http://sam.zoy.org/wtfpl>""".format(
+License WTFPL: <http://sam.zoy.org/wtfpl>""" % dict(
    name=APPLICATION_NAME,
    version=APPLICATION_VERSION,
    uri=APPLICATION_URI
@@ -139,6 +139,7 @@ Configuration:
 
     title-format= Cortex -- Reddit/{title}: {total} articles, {new} new
         Format used in the application title bar.
+        Note: In python 2.5, use %(VAR)s formatting.
 
         Available variables:
             {title}: Title of the current subreddit or "Frontpage".
@@ -150,6 +151,7 @@ Configuration:
                        {subreddit:<13}   {num_comments:4} comments
         Formats used for entries in the list in minimal and full mode 
         respectively.
+        Note: In python 2.5, use %(VAR)s formatting.
 
         Available variables:
             {title}: Article title.
@@ -174,8 +176,8 @@ Configuration:
         Amount of articles to save seen/read status for.
 
     browser-command=
-        Command to invoke the webbrowser. The {0} will be replaced by the url 
-        to open.
+        Command to invoke the webbrowser. The {0} will be replaced by the url
+        to open. (Use %s in python 2.5)
 
         If left empty, cortex will try to autodetect the default browser for
         the system.
@@ -238,8 +240,8 @@ GETCH_TIMEOUT = 400
 
 BASE_URI = "http://reddit.com/"
 INBOX_URI = BASE_URI+"message/inbox"
-SUB_URI = BASE_URI+"r/{0}/"
-SEARCH_URI = BASE_URI+"search.json?q={0}&sort=new"
+SUB_URI = BASE_URI+"r/%s/"
+SEARCH_URI = BASE_URI+"search.json?q=%s&sort=new"
 
 COLOR_NAME = {
     "black": 0,
@@ -261,13 +263,24 @@ Config = {
     "seen-size": 500,
     "sort": "-read",
 
-    "title-format": u" Cortex -- Reddit/{title}: {total} articles, {new} new",
-    "entry-format-minimal": u" {title} %> {subreddit:<13} | {num_comments:<4}",
-    "entry-format-full": u" {title} %n  [{score:4}] {read} {nsfw} %> {domain:30}   {subreddit:<13}   {num_comments:4} comments",
-
     "frontpage": BASE_URI+".json",
     "inbox": "",
 }
+
+
+if hasattr(str, "format"):
+    Config.update({
+        "title-format": u" Cortex -- Reddit/{title}: {total} articles, {new} new",
+        "entry-format-minimal": u" {title} %> {subreddit:<13} | {num_comments:<4}",
+        "entry-format-full": u" {title} %n  [{score:4}] {read} {nsfw} %> {domain:30}   {subreddit:<13}   {num_comments:4} comments",
+    })
+else:
+    Config.update({
+        "title-format": u" Cortex -- Reddit/%(title)s: %(total)s articles, %(new)s new",
+        "entry-format-minimal": u" %(title)s {>} %(subreddit)-13s | %(num_comments)-4s",
+        "entry-format-full": u" %(title)s {n} [%(score)4s] %(read)s %(nsfw)s {>} %(domain)30s   %(subreddit)-13s   %(num_comments)4s comments",
+    })
+
 Colors = {
     "title": ("brightyellow", "blue"),
     "normal": ("white", "black"),
@@ -281,6 +294,7 @@ Colors = {
     "entry-bottom-data-selected": ("brightyellow", "magenta"),
     "messages": ("brightgreen", "blue"),
 }
+
 Binds = {
     ord("q"): "quit",
     ord("r"): "update",
@@ -409,12 +423,22 @@ def browseropen(uri):
     """Open a link in the browser."""
     if type(uri) in (str, unicode):
         if Config["browser-command"]:
-            os.system(Config["browser-command"].format(uri)+" &")
+            if "{0}" in Config["browser-command"]:
+                os.system(Config["browser-command"].format(uri)+" &")
+            elif "%s" in Config["browser-command"]:
+                os.system((Config["browser-command"] % uri )+" &")
+            else:
+                os.system(Config["browser-command"])
         else:
             webbrowser.open(uri)
     else:
         if Config["browser-command"]:
-            cmd = "("+" ; ".join([Config["browser-command"].format(u) for u in uri])+") &"
+            if "{0}" in Config["browser-command"]:
+                cmd = "("+" ; ".join([Config["browser-command"].format(u) for u in uri])+") &"
+            elif "%s" in Config["browser-command"]:
+                cmd = "("+" ; ".join([Config["browser-command"]%u for u in uri])+") &"
+            else:
+                cmd = "("+" ; ".join([Config["browser-command"] for u in uri])+") &"
             os.system(cmd)
         else:
             for u in uri:
@@ -468,7 +492,7 @@ class Data(object):
         except:
             self.loading = False
             self.need_update = True
-            self.error = "Error opening reddit json file at {0}.".format(self.uri)
+            self.error = "Error opening reddit json file at %s." % self.uri
             return
 
         for datum in data:
@@ -539,7 +563,10 @@ class Entry(object):
         return other.data["id"] == self.data["id"]
 
     def _line_format(self, line, width):
-        line = line.split("%>")
+        if hasattr(str, "format"):
+            line = line.split("%>")
+        else:
+            line = line.split("{>}")
         left, right = (line[0], line[1]) if len(line) >= 2 else (line[0], "")
         left, right = left.encode("utf-8"), right.encode("utf-8")
 
@@ -555,9 +582,15 @@ class Entry(object):
 
     def format(self, display_type, width):
         if display_type == "minimal":
-            return self._line_format(Config["entry-format-minimal"].format(**self.data), width)
+            if hasattr(str, "format"):
+                return self._line_format(Config["entry-format-minimal"].format(**self.data), width)
+            else:
+                return self._line_format(Config["entry-format-minimal"] % self.data, width)
         else:
-            lines = Config["entry-format-full"].format(**self.data).split("%n")
+            if hasattr(str, "format"):
+                lines = Config["entry-format-full"].format(**self.data).split("%n")
+            else:
+                lines = (Config["entry-format-full"] % self.data).split("{n}")
 
             if len(lines) >= 2:
                 top, bottom = lines[0], lines[1]
@@ -572,7 +605,7 @@ class Entry(object):
     @property
     def comment_uri(self):
         """Get the comment uri associated with this entry."""
-        return SUB_URI.format(self.data["subreddit"])+"/comments/"+self.data["id"]
+        return (SUB_URI % self.data["subreddit"])+"/comments/"+self.data["id"]
 
     def open(self):
         """Open entry link in browser."""
@@ -700,8 +733,12 @@ class Interface(object):
         height, width = self.scr.getmaxyx()
 
         # Title line
-        self.setline(0, 0, Config["title-format"].format(total=self.data.total,
-                     new=self.data.new, title=self.data.title), color="title")
+        if hasattr(str, "format"):
+            self.setline(0, 0, Config["title-format"].format(total=self.data.total,
+                         new=self.data.new, title=self.data.title), color="title")
+        else:
+            self.setline(0, 0, Config["title-format"] % dict(total=self.data.total,
+                         new=self.data.new, title=self.data.title), color="title")
 
         # Unread messages count
         if Config["inbox"]:
@@ -904,7 +941,7 @@ def cm_subreddit(data, interface):
     if not sub:
         return
     else:
-        newloc = SUB_URI.format(sub)+".json"
+        newloc = (SUB_URI % sub)+".json"
 
     if data.uri != newloc:
         del interface.data
@@ -931,7 +968,7 @@ def cm_search(data, interface):
     if not sub:
         return
     else:
-        newloc = SEARCH_URI.format(quote(sub))
+        newloc = SEARCH_URI % quote(sub)
 
     if data.uri != newloc:
         del interface.data
@@ -943,7 +980,7 @@ def cm_search(data, interface):
 @command(name="subreddit-go")
 def cm_subreddit_go(data, interface):
     sub = interface.entry.data["subreddit"]
-    newloc = SUB_URI.format(sub)+".json"
+    newloc = (SUB_URI % sub)+".json"
 
     if data.uri == newloc:
         newloc = Config["frontpage"]
@@ -971,7 +1008,7 @@ def main():
         print(HELPTEXT)
     else:
         if len(sys.argv) > 1:
-            data = Data(SUB_URI.format(sys.argv[1])+".json")
+            data = Data((SUB_URI % sys.argv[1])+".json")
             data.title = sys.argv[1]
         else:
             data = Data(Config["frontpage"])
@@ -984,7 +1021,7 @@ def main():
             interface.init()
             interface.main()
             interface.cleanup()
-        except Exception as exc:
+        except:
             interface.cleanup()
             import traceback
             traceback.print_exc()
