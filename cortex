@@ -252,6 +252,7 @@ COLOR_NAME = {
     "magenta": 5,
     "cyan": 6,
     "white": 7,
+	"default": -1,
 }
 # }}}
 
@@ -661,6 +662,7 @@ class Interface(object):
         curses.curs_set(0)
         curses.noecho()
         curses.start_color()
+        curses.use_default_colors()
 
         # Initialise colors
         self.colors = {}
