@@ -42,7 +42,7 @@ License WTFPL: <http://sam.zoy.org/wtfpl>""" % dict(
    uri=APPLICATION_URI
 )
 
-HELPTEXT = """
+DOCTEXT = """
 Usage: {{CMD}} [SUBREDDIT]
 An ncurses reddit browser and monitor.
 
@@ -229,6 +229,14 @@ Color Configuration:
         messages=brightgreen,blue
             The unread messages count in the top right of the application.
 
+""".replace("{{CMD}}", sys.argv[0], 1)
+
+HELPTEXT = """
+Usage: {{CMD}} [-v|--version] [-h|--help] [--doc]
+
+    -v, --version      Show the version
+    -h, --help         This message
+        --doc          Information about use and configuration (lots of output)
 """.replace("{{CMD}}", sys.argv[0], 1)
 # }}}
 
@@ -1008,6 +1016,8 @@ def main():
         print(VERSIONTEXT)
     elif len(sys.argv) > 1 and sys.argv[1] in ("--help", "-h"):
         print(HELPTEXT)
+    elif len(sys.argv) > 1 and sys.argv[1] in ("--doc"):
+        print(DOCTEXT)
     else:
         if len(sys.argv) > 1:
             data = Data((SUB_URI % sys.argv[1])+".json")
