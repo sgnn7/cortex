@@ -9,13 +9,13 @@
 ## The field to sort the entries by. A "-" in front indicated a reverse sort order.
 #sort=-read
 ## Format used in the application title bar
-### See `cortex --help` for the format specification.
+### See cortex(1) for the format specification.
 #title-format= Cortex -- Reddit/{title}: {total} articles, {new} new
 ## Format used for an entry in minimal mode
-### See `cortex --help` for the format specification.
+### See cortex(1) for the format specification.
 #entry-format-minimal= {title} %> {subreddit:<13} | {num_comments:4}
 ## Format used for an entry in full mode
-### See `cortex --help` for the format specification.
+### See cortex(1) for the format specification.
 #entry-format-full= {title} %n  [{score:4}] {read} {nsfw} %> {domain:30}   {subreddit:<13}   {num_comments:4} comments
 ## Amount of articles to save seen/read status for
 #seen-size=500

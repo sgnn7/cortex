@@ -1,0 +1,303 @@
+.\" generated with Ronn/v0.7.3
+.\" http://github.com/rtomayko/ronn/tree/0.7.3
+.
+.TH "CORTEX" "1" "July 2010" "" ""
+.
+.SH "NAME"
+cortex \- reddit browser and monitor
+.
+.SH "SYNOPSIS"
+cortex SUBREDDIT
+.
+.SH "DESCRIPTION"
+Browse through reddit article lists from the cli\.
+.
+.SH "KEYBINDINGS"
+.
+.TP
+\fBq\fR
+Quit cortex and go back to the terminal\.
+.
+.TP
+\fBr\fR
+Update/Refresh the cortex listing from reddit\.
+.
+.TP
+\fBm\fR
+Toggle between full and minimal display mode\.
+.
+.TP
+\fBo\fR, \fBReturn\fR
+Open the currently selected link in the browser\.
+.
+.TP
+\fBc\fR
+Open the comments page for the currently selected link in the browser\.
+.
+.TP
+\fBt\fR
+Open both the currently selected link and the comments page in the browser\.
+.
+.TP
+\fBi\fR
+Open the reddit messages inbox in the browser\.
+.
+.TP
+\fBh\fR
+Jump to the frontpage listing\.
+.
+.TP
+\fBs\fR
+Prompt for a subreddit to display the listing for\.
+.
+.TP
+\fBf\fR
+Jump to the subreddit the currently selected article is in\. Alternatively, when already viewing a subreddit, jump back to the frontpage\.
+.
+.TP
+\fBz\fR
+Mark the currently selected link as read\.
+.
+.TP
+\fBl\fR
+Mark all articles in the list as read\.
+.
+.TP
+\fB/\fR
+Prompt for searching reddit\.
+.
+.TP
+\fBUp\fR, \fBk\fR
+Move one entry up the list\.
+.
+.TP
+\fBDown\fR, \fBj\fR
+Move one entry down the list\.
+.
+.TP
+\fB0\fR, \fBg\fR, \fBHome\fR
+Go to the first entry in the list\.
+.
+.TP
+\fB$\fR, \fBG\fR, \fBEnd\fR
+Go to the last entry in the list\.
+.
+.TP
+\fBControl+B\fR, \fBPage Up\fR
+Move one page up the list\.
+.
+.TP
+\fBControl+F\fR, \fBPage Down\fR
+Move one page down the list\.
+.
+.SH "CONFIGURATION"
+See config\.example for an example configuration file to put in ~/\.cortex/config, the following options are available:
+.
+.SS "frontpage=http://reddit\.com/\.json"
+.
+.nf
+
+Frontpage json url, substitute your personal one here if you want
+cortex to display your own subreddit subscriptions\.
+.
+.fi
+.
+.SS "inbox="
+.
+.nf
+
+Unread messages json url, put your personal one here if you want
+cortex to display your unread message count\.
+.
+.fi
+.
+.SS "sort=\-read"
+.
+.nf
+
+Field to sort the entries by\. A "\-" in front of the field name
+indicates a reverse sort order\.
+
+Not specifying a sort option will leave the ordering to reddit
+(this usually means you will see the same order in cortex as
+you would on your frontpage)\.
+
+Some fields that can be sorted by:
+    created: Article creation time
+    title: Article title alphabetically
+    score: Article total score
+    read: Whether the article is marked read or not
+.
+.fi
+.
+.SS "title\-format= Cortex \-\- Reddit/{title}: {total} articles, {new} new"
+.
+.nf
+
+Format used in the application title bar\.
+Note: In python 2\.5, use %(VAR)s formatting\.
+
+Available variables:
+    {title}: Title of the current subreddit or "Frontpage"\.
+    {total}: Total amount of articles in the listing\.
+    {new}: Amount of unread articles in the listing\.
+.
+.fi
+.
+.SS "entry\-format\-minimal= {title} %> {subreddit:<13} | {num_comments:4}"
+.
+.SS "entry\-format\-full= {title} %n [{score:4}] {read} {nsfw} %> {domain:30}"
+.
+.SS "{subreddit:<13} {num_comments:4} comments"
+.
+.nf
+
+Formats used for entries in the list in minimal and full mode
+respectively\.
+Note: In python 2\.5, use %(VAR)s formatting\.
+
+    Available variables:
+        {title}: Article title\.
+        {subreddit}: Article subreddit\.
+        {num_comments}: Amount of comments the article has\.
+        {score}: Article score
+        {ups}: Article total upvotes
+        {downs}: Article total downvotes
+        {domain}: Article domain
+        {author}: Article submitter/author
+
+        {read}: "[New]" if the article is new, empty otherwise\.
+        {nsfw}: "NSFW" if the article in not safe for work, empty otherwise\.
+
+You can use %> to indicate that the rest of the line should be aligned
+to the right of the screen\.
+
+In the full entry format, you can use one "%n" to indicate the separation
+between the top and bottom lines in the listing\.
+.
+.fi
+.
+.SS "seen\-size=500"
+.
+.nf
+
+Amount of articles to save seen/read status for\.
+.
+.fi
+.
+.SS "browser\-command="
+.
+.nf
+
+Command to invoke the webbrowser\. The {0} will be replaced by the url
+to open\. (Use %s in python 2\.5)
+
+If left empty, cortex will try to autodetect the default browser for
+the system\.
+.
+.fi
+.
+.SS "update\-interval=10"
+.
+.nf
+
+Amount of minutes between automatic updates/refreshes\.
+.
+.fi
+.
+.SH "COLOR CONFIGURATION"
+You can also change the colors used in the configuration, the colors available are: black, red, green, yellow, blue, magenta, cyan, white, default and their respective bright\- versions\.
+.
+.P
+Colors are specified in (foreground, background) pairs, the available items to set the colors for are:
+.
+.SS "title=brightyellow,blue"
+.
+.nf
+
+The titlebar on top of the interface\.
+.
+.fi
+.
+.SS "normal=white,black"
+.
+.nf
+
+Normal text\.
+.
+.fi
+.
+.SS "entry=white,black"
+.
+.nf
+
+The main part of an entry\.
+.
+.fi
+.
+.SS "entry\-data=yellow,black"
+.
+.nf
+
+The right/data part of an entry\.
+.
+.fi
+.
+.SS "entry\-selected=brightyellow,magenta"
+.
+.nf
+
+The main part of a selected entry\.
+.
+.fi
+.
+.SS "entry\-data\-selected=brightyellow,magenta"
+.
+.nf
+
+The right/data part of a selected entry\.
+.
+.fi
+.
+.SS "entry\-bottom=green,black"
+.
+.nf
+
+The main part of the bottom line of an entry in full mode\.
+.
+.fi
+.
+.SS "entry\-bottom\-selected=brightyellow,magenta"
+.
+.nf
+
+The main part of the bottom line of a selected entry
+in full mode\.
+.
+.fi
+.
+.SS "entry\-bottom\-data=yellow,black"
+.
+.nf
+
+The right/data part of the bottom line of an entry in full mode\.
+.
+.fi
+.
+.SS "entry\-bottom\-data\-selected=brightyellow,magenta"
+.
+.nf
+
+The right/data part of the bottom line of a selected entry in full
+mode\.
+.
+.fi
+.
+.SS "messages=brightgreen,blue"
+.
+.nf
+
+The unread messages count in the top right of the application\.
+.
+.fi
+
