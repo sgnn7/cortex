@@ -1,6 +1,6 @@
-# cortex
+# Cortex
 
-Homepage: http://cortex.glacicle.org/
+Homepage: <http://cortex.glacicle.org/>
 
 ## About
 
@@ -22,8 +22,8 @@ them in the config. It will look something like this:
     inbox=http://www.reddit.com/message/unread/.json?feed=my-long-personal-hash&user=my-username
 
 Of course you can also just keep cortex as it is and browse the global reddit
-frontpage as usual. Check the output of `cortex --doc` for more information
-about the syntax.
+frontpage as usual. See the cortex(1) manpage for more information about the
+syntax and keybindings.
 
 ## Screenshots
 
