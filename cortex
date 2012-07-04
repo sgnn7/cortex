@@ -120,6 +120,7 @@ Binds = {
     ord("q"): "quit",
     ord("r"): "update",
     ord("m"): "toggle-minimal",
+    ord("x"): "toggle-hideold",
 
     ord("k"): "prev-line",
     ord("j"): "next-line",
@@ -162,6 +163,7 @@ Binds = {
 }
 
 Minimal = False
+HideOld = False
 
 # Load user config
 LocalConfig = ConfigParser()
@@ -173,6 +175,8 @@ if LocalConfig.has_section("config"):
 
         if opt == "minimal":
             Minimal = bool(int(Config[opt]))
+        elif opt == "hideold":
+            HideOld = bool(int(Config[opt]))
 
 if LocalConfig.has_section("color"):
     for cname in LocalConfig.options("color"):
@@ -373,14 +377,20 @@ class Entry(object):
 
     def reval_data(self):
         """Revaluate data dictionary to set some convenience vars."""
+        if "title" not in self.data:
+            return
         self.data["title"] = self.data["title"].replace("\r\n", "").replace("\n", "").replace("&amp;","&")
         self.data["read"] = "     " if self.read else "[New]"
         self.data["nsfw"] = "NSFW" if self.data["over_18"] else "    "
 
     def __repr__(self):
+        if "title" not in self.data:
+            return "<>"
         return "<"+self.data["title"]+">"
 
     def __eq__(self, other):
+        if "id" not in self.data or "id" not in other.data:
+            return false;
         return other.data["id"] == self.data["id"]
 
     def _line_format(self, line, width):
@@ -402,6 +412,8 @@ class Entry(object):
         return left, right
 
     def format(self, display_type, width):
+        if not len(self.data):
+            return ""
         if display_type == "minimal":
             if hasattr(str, "format"):
                 return self._line_format(Config["entry-format-minimal"].format(**self.data), width)
@@ -426,23 +438,28 @@ class Entry(object):
     @property
     def comment_uri(self):
         """Get the comment uri associated with this entry."""
+        if "id" not in self.data:
+            return ""
         return (SUB_URI % self.data["subreddit"])+"/comments/"+self.data["id"]
 
     def open(self):
         """Open entry link in browser."""
-        browseropen(self.data["url"])
-        self.read = True
-        self.data["read"] = "    "
+        if "url" in self.data:
+            browseropen(self.data["url"])
+            self.read = True
+            self.data["read"] = "    "
 
     def opencomments(self):
         """Open comments link in browser."""
-        browseropen(self.comment_uri)
+        if self.comment_uri:
+            browseropen(self.comment_uri)
 
     def openboth(self):
         """Open entry link in browser."""
-        browseropen([self.data["url"], self.comment_uri])
-        self.read = True
-        self.data["read"] = "    "
+        if self.comment_uri and "url" in self.data:
+            browseropen([self.data["url"], self.comment_uri])
+            self.read = True
+            self.data["read"] = "    "
 # }}}
 
 # {{{ Interface
@@ -456,6 +473,7 @@ class Interface(object):
         self.selected = 0
         self.need_update = False
         self.messages = 0
+        self.displayed_entries = 0
 
         self.timer = Timer(int(Config["update-interval"])*60, self._timeout)
         self.timer.start()
@@ -511,7 +529,28 @@ class Interface(object):
     @property
     def entry(self):
         """Get the selected entry."""
-        return self.data.entries[self.selected]
+        if HideOld:
+            num_entries = self.data.total
+            i = 0
+            r = 0
+
+            while i < num_entries:
+                entry = self.data.entries[i]
+                i += 1
+
+                if HideOld and entry.read:
+                    self.displayed_entries -= 1
+                    continue
+
+                if r == self.selected:
+                    return entry
+                r += 1
+
+            return Entry({})
+        elif self.selected < self.data.total:
+            return self.data.entries[self.selected]
+        else:
+            return Entry({})
 
     def cleanup(self):
         # Cancel timer
@@ -569,22 +608,34 @@ class Interface(object):
 
         # Display entries
         y = 1
-        i = self.scroll
+        i = 0
+        r = 0
 
         num_entries = self.data.total
+        self.displayed_entries = num_entries
 
         if num_entries:
             displayed = int((height-1-y)/(1 if Minimal else 2))
-            if self.selected <= i:
-                self.scroll = i = self.selected
-            elif self.selected >= i+displayed:
-                self.scroll = i = self.selected-displayed+1
+            if self.selected <= self.scroll:
+                self.scroll = self.selected
+            elif self.selected >= self.scroll+displayed:
+                self.scroll = self.selected-displayed+1
 
         while y < height-1:
             if num_entries and i < num_entries:
                 entry = self.data.entries[i]
-                sel = "-selected" if self.selected == i else ""
                 i += 1
+
+                if HideOld and entry.read:
+                    self.displayed_entries -= 1
+                    continue
+
+                if r < self.scroll:
+                    r += 1
+                    continue
+
+                sel = "-selected" if self.selected == r else ""
+                r += 1
 
                 if Minimal:
                     left, right = entry.format("minimal", width-1)
@@ -615,18 +666,18 @@ class Interface(object):
         self.scr.refresh()
 
     def prev_line(self):
-        total = self.data.total
+        total = self.displayed_entries
         self.selected = total-1 if self.selected <= 0 else self.selected-1
         self.need_update = True
 
     def next_line(self):
-        total = len(self.data.entries)
+        total = self.displayed_entries
         self.selected = 0 if self.selected >= total-1 else self.selected+1
         self.need_update = True
 
     def prev_page(self):
         height, width = self.scr.getmaxyx()
-        total = self.data.total
+        total = self.displayed_entries
         displayed = int((height-2)/(1 if Minimal else 2))
 
         self.selected -= displayed
@@ -637,7 +688,7 @@ class Interface(object):
 
     def next_page(self):
         height, width = self.scr.getmaxyx()
-        total = self.data.total
+        total = self.displayed_entries
         displayed = int((height-2)/(1 if Minimal else 2))
 
         self.selected += displayed
@@ -734,6 +785,12 @@ def cm_mark_all_read(data, interface):
 def cm_toggle_minimal(data, interface):
     global Minimal
     Minimal = not Minimal
+    interface.need_update = True
+
+@command(name="toggle-hideold")
+def cm_toggle_hideold(data, interface):
+    global HideOld
+    HideOld = not HideOld
     interface.need_update = True
 
 @command(name="frontpage")

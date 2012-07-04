@@ -18,6 +18,9 @@ Browse through reddit article lists from the cli.
 * `m`:
   Toggle between full and minimal display mode.
 
+* `x`:
+  Toggle whether to display only new posts.
+
 * `o`, `Return`:
   Open the currently selected link in the browser.
 
