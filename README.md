@@ -25,6 +25,11 @@ Of course you can also just keep cortex as it is and browse the global reddit
 frontpage as usual. See the cortex(1) manpage for more information about the
 syntax and keybindings.
 
+## License
+
+Cortex is licensed as free software under the MIT/X11 license.
+See LICENSE for the full license text.
+
 ## Screenshots
 
 ![Screenshot #1](http://cortex.glacicle.org/screen_1.png)
