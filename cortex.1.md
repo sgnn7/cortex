@@ -144,6 +144,13 @@ the following options are available:
     If left empty, cortex will try to autodetect the default browser for
     the system.
 
+### browser-background=1
+    Whether the browser command should be backgrounded. Set to 0 to
+    wait for the browser to finish before continuing cortex execution.
+
+    This is needed when using console browsers like lynx or w3m so they do
+    not get executed in the background.
+
 ### update-interval=10
     Amount of minutes between automatic updates/refreshes.
 

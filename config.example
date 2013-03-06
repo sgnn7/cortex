@@ -23,6 +23,9 @@
 ## If left empty will try to autodetect the system default browser
 ##browser-command=firefox '{0}'
 #browser-command=
+## Whether to background the command that runs the browser
+## Defaults to 1, should be set to 0 if running a console browser such as lynx or w3m
+##browser-background=0
 ## Amount of minutes between automatic updates/refreshes
 #update-interval=10
 

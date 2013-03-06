@@ -164,6 +164,7 @@ Binds = {
 
 Minimal = False
 HideOld = False
+BackgroundBrowser = False
 
 # Load user config
 LocalConfig = ConfigParser()
@@ -177,6 +178,8 @@ if LocalConfig.has_section("config"):
             Minimal = bool(int(Config[opt]))
         elif opt == "hideold":
             HideOld = bool(int(Config[opt]))
+        elif opt == "browser-background":
+            BackgroundBrowser = bool(int(Config[opt]))
 
 if LocalConfig.has_section("color"):
     for cname in LocalConfig.options("color"):
@@ -249,21 +252,26 @@ def browseropen(uri):
     if type(uri) in (str, unicode):
         if Config["browser-command"]:
             if "{0}" in Config["browser-command"]:
-                os.system(Config["browser-command"].format(uri)+" &")
+                cmd = Config["browser-command"].format(uri)
             elif "%s" in Config["browser-command"]:
-                os.system((Config["browser-command"] % uri )+" &")
+                cmd = (Config["browser-command"] % uri )
             else:
-                os.system(Config["browser-command"])
+                cmd = Config["browser-command"]
+            if BackgroundBrowser:
+                cmd += " &"
+            os.system(cmd)
         else:
             webbrowser.open(uri)
     else:
         if Config["browser-command"]:
             if "{0}" in Config["browser-command"]:
-                cmd = "("+" ; ".join([Config["browser-command"].format(u) for u in uri])+") &"
+                cmd = "("+" ; ".join([Config["browser-command"].format(u) for u in uri])+")"
             elif "%s" in Config["browser-command"]:
-                cmd = "("+" ; ".join([Config["browser-command"]%u for u in uri])+") &"
+                cmd = "("+" ; ".join([Config["browser-command"]%u for u in uri])+")"
             else:
-                cmd = "("+" ; ".join([Config["browser-command"] for u in uri])+") &"
+                cmd = "("+" ; ".join([Config["browser-command"] for u in uri])+")"
+            if BackgroundBrowser:
+                cmd += " &"
             os.system(cmd)
         else:
             for u in uri:
@@ -372,7 +380,7 @@ class Data(object):
 class Entry(object):
     def __init__(self, data):
         self.data = data
-        self.read = self.data["id"] in Seen
+        self.read = "id" in self.data and self.data["id"] in Seen
         self.reval_data()
 
     def reval_data(self):
@@ -472,6 +480,7 @@ class Interface(object):
         self.scroll = 0
         self.selected = 0
         self.need_update = False
+        self.need_redraw = False
         self.messages = 0
         self.displayed_entries = 0
 
@@ -592,6 +601,10 @@ class Interface(object):
         """Refresh the curses interface."""
         # Get dimensions
         height, width = self.scr.getmaxyx()
+
+        if self.need_redraw:
+            self.need_redraw = False
+            self.scr.clear()
 
         # Title line
         if hasattr(str, "format"):
@@ -748,6 +761,7 @@ def cm_update(data, interface):
 def cm_open(data, interface):
     interface.entry.open()
     interface.need_update = True
+    interface.need_redraw = True
 
 @command(name="mark-read")
 def cm_mark_read(data, interface):
@@ -760,15 +774,19 @@ def cm_mark_read(data, interface):
 @command(name="open-comments")
 def cm_opencomments(data, interface):
     interface.entry.opencomments()
+    interface.need_update = True
+    interface.need_redraw = True
 
 @command(name="open-both")
 def cm_openboth(data, interface):
     interface.entry.openboth()
     interface.need_update = True
+    interface.need_redraw = True
 
 @command(name="open-inbox")
 def cm_openinbox(data, interface):
     browseropen(INBOX_URI)
+    interface.need_redraw = True
     interface.need_update = True
     interface.messages = 0
 

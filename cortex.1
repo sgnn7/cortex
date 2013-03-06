@@ -1,7 +1,7 @@
 .\" generated with Ronn/v0.7.3
 .\" http://github.com/rtomayko/ronn/tree/0.7.3
 .
-.TH "CORTEX" "1" "July 2010" "" ""
+.TH "CORTEX" "1" "March 2013" "" ""
 .
 .SH "NAME"
 cortex \- reddit browser and monitor
@@ -25,6 +25,10 @@ Update/Refresh the cortex listing from reddit\.
 .TP
 \fBm\fR
 Toggle between full and minimal display mode\.
+.
+.TP
+\fBx\fR
+Toggle whether to display only new posts\.
 .
 .TP
 \fBo\fR, \fBReturn\fR
@@ -194,6 +198,18 @@ to open\. (Use %s in python 2\.5)
 
 If left empty, cortex will try to autodetect the default browser for
 the system\.
+.
+.fi
+.
+.SS "browser\-background=1"
+.
+.nf
+
+Whether the browser command should be backgrounded\. Set to 0 to
+wait for the browser to finish before continuing cortex execution\.
+
+This is needed when using console browsers like lynx or w3m so they do
+not get executed in the background\.
 .
 .fi
 .
