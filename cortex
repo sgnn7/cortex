@@ -164,7 +164,7 @@ Binds = {
 
 Minimal = False
 HideOld = False
-BackgroundBrowser = False
+BackgroundBrowser = True
 
 # Load user config
 LocalConfig = ConfigParser()
@@ -256,7 +256,7 @@ def browseropen(uri):
             elif "%s" in Config["browser-command"]:
                 cmd = (Config["browser-command"] % uri )
             else:
-                cmd = Config["browser-command"]
+                cmd = Config["browser-command"]+" "+uri
             if BackgroundBrowser:
                 cmd += " &"
             os.system(cmd)
@@ -269,7 +269,7 @@ def browseropen(uri):
             elif "%s" in Config["browser-command"]:
                 cmd = "("+" ; ".join([Config["browser-command"]%u for u in uri])+")"
             else:
-                cmd = "("+" ; ".join([Config["browser-command"] for u in uri])+")"
+                cmd = "("+" ; ".join([Config["browser-command"]+" "+u for u in uri])+")"
             if BackgroundBrowser:
                 cmd += " &"
             os.system(cmd)
@@ -761,7 +761,8 @@ def cm_update(data, interface):
 def cm_open(data, interface):
     interface.entry.open()
     interface.need_update = True
-    interface.need_redraw = True
+    if not BackgroundBrowser:
+        interface.need_redraw = True
 
 @command(name="mark-read")
 def cm_mark_read(data, interface):
@@ -775,18 +776,21 @@ def cm_mark_read(data, interface):
 def cm_opencomments(data, interface):
     interface.entry.opencomments()
     interface.need_update = True
-    interface.need_redraw = True
+    if not BackgroundBrowser:
+        interface.need_redraw = True
 
 @command(name="open-both")
 def cm_openboth(data, interface):
     interface.entry.openboth()
     interface.need_update = True
-    interface.need_redraw = True
+    if not BackgroundBrowser:
+        interface.need_redraw = True
 
 @command(name="open-inbox")
 def cm_openinbox(data, interface):
     browseropen(INBOX_URI)
-    interface.need_redraw = True
+    if not BackgroundBrowser:
+        interface.need_redraw = True
     interface.need_update = True
     interface.messages = 0
 
