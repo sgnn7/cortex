@@ -249,6 +249,8 @@ def getcommand(name, cmds=None):
 # {{{ browseropen
 def browseropen(uri):
     """Open a link in the browser."""
+    if not BackgroundBrowser:
+        curses.curs_set(1)
     if type(uri) in (str, unicode):
         if Config["browser-command"]:
             if "{0}" in Config["browser-command"]:
@@ -276,6 +278,8 @@ def browseropen(uri):
         else:
             for u in uri:
                 webbrowser.open(u)
+    if not BackgroundBrowser:
+        curses.curs_set(0)
 # }}}
 
 # {{{ seen_write
