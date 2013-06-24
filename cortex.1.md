@@ -154,6 +154,13 @@ the following options are available:
 ### update-interval=10
     Amount of minutes between automatic updates/refreshes.
 
+### minimal=0
+    Whether to start cortex in minimal mode. Same as pressing 'm'.
+
+### hideold=0
+    Whether to hide already displayed or seen links when starting cortex.
+    Same as pressing 'x'.
+
 ## COLOR CONFIGURATION
 You can also change the colors used in the configuration, the colors
 available are: black, red, green, yellow, blue, magenta, cyan, white, default

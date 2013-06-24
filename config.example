@@ -28,6 +28,10 @@
 ##browser-background=0
 ## Amount of minutes between automatic updates/refreshes
 #update-interval=10
+###Whether to start in minimal mode.
+##minimal=0
+###Whether to hide old links on start.
+##hideold=0
 
 [color]
 ## Item=Foreground,Background
