@@ -1,16 +1,17 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 # coding=utf-8
 import os
 import sys
 import curses
-import urllib2
-import thread
+import threading
 import time
 import webbrowser
 
-from urllib import quote
+from configparser import ConfigParser
+from urllib.request import urlopen
+from urllib.parse import quote
 from threading import Timer
-from ConfigParser import ConfigParser
+from subprocess import call, DEVNULL
 
 # Get a json library
 try:
@@ -52,16 +53,16 @@ See cortex(1) for information about using and configuring cortex.
 """.replace("{{CMD}}", sys.argv[0], 1)
 # }}}
 
-CONF_DIR = os.getenv("HOME")+"/.cortex"
-SEEN_LOCATION = CONF_DIR+"/seen.cache"
-CONF_LOCATION = CONF_DIR+"/config"
+CONF_DIR = os.getenv("HOME") + "/.cortex"
+SEEN_LOCATION = CONF_DIR + "/seen.cache"
+CONF_LOCATION = CONF_DIR + "/config"
 
 GETCH_TIMEOUT = 400
 
 BASE_URI = "http://reddit.com/"
-INBOX_URI = BASE_URI+"message/inbox"
-SUB_URI = BASE_URI+"r/%s/"
-SEARCH_URI = BASE_URI+"search.json?q=%s&sort=new"
+INBOX_URI = BASE_URI + "message/inbox"
+SUB_URI = BASE_URI + "r/%s/"
+SEARCH_URI = BASE_URI + "search.json?q=%s&sort=new"
 
 COLOR_NAME = {
     "black": 0,
@@ -172,7 +173,7 @@ LocalConfig.read([CONF_LOCATION,])
 
 if LocalConfig.has_section("config"):
     for opt in LocalConfig.options("config"):
-        Config[opt] = unicode(LocalConfig.get("config", opt))
+        Config[opt] = LocalConfig.get("config", opt)
 
         if opt == "minimal":
             Minimal = bool(int(Config[opt]))
@@ -251,7 +252,7 @@ def browseropen(uri):
     """Open a link in the browser."""
     if not BackgroundBrowser:
         curses.curs_set(1)
-    if type(uri) in (str, unicode):
+    if type(uri) in (str, bytes):
         if Config["browser-command"]:
             if "{0}" in Config["browser-command"]:
                 cmd = Config["browser-command"].format(uri)
@@ -261,9 +262,11 @@ def browseropen(uri):
                 cmd = Config["browser-command"]+" "+uri
             if BackgroundBrowser:
                 cmd += " &"
-            os.system(cmd)
+            call(cmd, shell=True, stdout=DEVNULL, stderr=DEVNULL)
         else:
-            webbrowser.open(uri)
+            # Taken from webbrowser source since stderr is displayed using regular browser
+            cmdline = webbrowser.get().name + " " + uri
+            call( cmdline, shell=True, stdout=DEVNULL, stderr=DEVNULL)
     else:
         if Config["browser-command"]:
             if "{0}" in Config["browser-command"]:
@@ -274,10 +277,12 @@ def browseropen(uri):
                 cmd = "("+" ; ".join([Config["browser-command"]+" "+u for u in uri])+")"
             if BackgroundBrowser:
                 cmd += " &"
-            os.system(cmd)
+            call(cmd, shell=True, stdout=DEVNULL, stderr=DEVNULL)
         else:
             for u in uri:
-                webbrowser.open(u)
+                # Taken from webbrowser source since stderr is displayed using regular browser
+                cmdline = webbrowser.get().name + " " + u
+                call( cmdline, shell=True, stdout=DEVNULL, stderr=DEVNULL)
     if not BackgroundBrowser:
         curses.curs_set(0)
 # }}}
@@ -295,13 +300,11 @@ def seen_write():
 # {{{ check_inbox
 def check_inbox(interface):
     try:
-        req = urllib2.urlopen(Config["inbox"])
-        data = json.load(req)["data"]["children"]
+        req = urlopen(Config["inbox"]).read().decode("utf-8")
+        data = json.loads(req)["data"]["children"]
         interface.messages = len(data)
     except:
         pass
-    finally:
-        thread.exit()
 # }}}
 # }}}
 
@@ -323,13 +326,14 @@ class Data(object):
 
     def _load(self, use_thread=True):
         try:
-            req = urllib2.urlopen(self.uri)
-            data = json.load(req)["data"]["children"]
+            req = urlopen(self.uri).read().decode("utf-8")
+            data = json.loads(req)["data"]["children"]
             self.error = ""
-        except:
+        except Exception as e:
             self.loading = False
             self.need_update = True
-            self.error = "Error opening reddit json file at %s." % self.uri
+
+            self.error = "Error opening reddit json file at %s. %s [Line %s]." % (self.uri, e, sys.exc_info()[-1].tb_linenoz)
             return
 
         for datum in data:
@@ -366,16 +370,13 @@ class Data(object):
         self.total = len(self.entries)
         self.new = len([entry for entry in self.entries if not entry.read])
 
-        if use_thread:
-            thread.exit()
-
     def load(self, use_thread=True):
         if not self.loading:
             self.loading = True
             self.need_update = True
 
             if use_thread:
-                thread.start_new_thread(self._load, ())
+                threading.Thread(target=self._load, daemon=True, args=()).start()
             else:
                 self._load(False)
 # }}}
@@ -411,15 +412,14 @@ class Entry(object):
         else:
             line = line.split("{>}")
         left, right = (line[0], line[1]) if len(line) >= 2 else (line[0], "")
-        left, right = left.encode("utf-8"), right.encode("utf-8")
 
         right_len = len(right)
-        left_target = width-right_len
+        left_target = width - right_len
 
         if len(left) > left_target:
-            left = left[:left_target-3]+"..."
+            left = left[:left_target - 3] + "..."
         else:
-            left = left+(" "*(left_target-len(left)))
+            left = left + " " * (left_target - len(left))
 
         return left, right
 
@@ -497,7 +497,7 @@ class Interface(object):
 
         # Check inbox if applicable
         if Config["inbox"]:
-            thread.start_new_thread(check_inbox, (self,))
+            threading.Thread(target=check_inbox, daemon=True, args=(self,)).start()
 
         # Restart timer
         del self.timer
@@ -594,7 +594,7 @@ class Interface(object):
     def setline(self, y, x, line, color=None, offset=0, char=' '):
         """Fill a line completely with text."""
         height, width = self.scr.getmaxyx()
-        line = line.ljust(width-offset, char)
+        line = str(line).ljust(width-offset, char)
 
         if color and color in self.colors:
             self.scr.addstr(y, x, line, self.colors[color])
@@ -759,7 +759,7 @@ def cm_update(data, interface):
 
     # Update inbox
     if Config["inbox"]:
-        thread.start_new_thread(check_inbox, (interface,))
+        threading.Thread(target=check_inbox, daemon=True, args=(interface, )).start()
 
 @command(name="open")
 def cm_open(data, interface):
@@ -837,7 +837,7 @@ def cm_subreddit(data, interface):
     height, width = interface.scr.getmaxyx()
     interface.scr.addstr(height-1, 0, " "*(width-1))
     interface.scr.addstr(height-1, 1, "Display Subreddit: ")
-    sub = interface.scr.getstr(height-1, 20)
+    sub = interface.scr.getstr(height-1, 20).decode("utf-8")
 
     interface.scr.timeout(GETCH_TIMEOUT)
     curses.noecho()
@@ -864,7 +864,7 @@ def cm_search(data, interface):
     height, width = interface.scr.getmaxyx()
     interface.scr.addstr(height-1, 0, " "*(width-1))
     interface.scr.addstr(height-1, 1, "Search: ")
-    sub = interface.scr.getstr(height-1, 9)
+    sub = interface.scr.getstr(height-1, 9).decode("utf-8")
 
     interface.scr.timeout(GETCH_TIMEOUT)
     curses.noecho()
@@ -878,7 +878,7 @@ def cm_search(data, interface):
     if data.uri != newloc:
         del interface.data
         data = Data(newloc)
-        data.title = "Search -- "+sub
+        data.title = "Search -- " + sub
         data.load()
         interface.data = data
 
