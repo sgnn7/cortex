@@ -168,7 +168,7 @@ HideOld = False
 BackgroundBrowser = True
 
 # Load user config
-LocalConfig = ConfigParser()
+LocalConfig = ConfigParser(interpolation=None)
 LocalConfig.read([CONF_LOCATION,])
 
 if LocalConfig.has_section("config"):
